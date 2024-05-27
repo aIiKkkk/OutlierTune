@@ -61,9 +61,9 @@ device_map={'glm.word_embeddings': 0,
  'glm.transformer.layers.47': 0,
  'glm.transformer.final_layernorm': 0}
 def build_model_and_tokenizer(model_name):
-    tokenizer = AutoTokenizer.from_pretrained(f"/data/wangjinguang/Model_data/{model_name}", trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained(f"./Model_data/{model_name}", trust_remote_code=True)
     kwargs = {"torch_dtype": torch.float16, "device_map": "sequential"}
-    model = AutoModelForSeq2SeqLM.from_pretrained(f"/data/wangjinguang/Model_data/{model_name}",
+    model = AutoModelForSeq2SeqLM.from_pretrained(f"./Model_data/{model_name}",
                                                   torch_dtype=torch.float16, trust_remote_code=True,
                                                   device_map=device_map, revision="6adb492")
     return model, tokenizer
@@ -73,15 +73,14 @@ def parse_args():
     model_name = 'GLM-10b'
     parser.add_argument('--model-name', type=str,
                         default=model_name, help='model name')
-    parser.add_argument('--output-path', type=str, default=f'/home/wjg/linuxPJ/New/symmetrizations/{model_name}.pt',
+    parser.add_argument('--output-path', type=str, default=f'./symmetrizations/{model_name}.pt',
                         help='where to save the act scales')
-    parser.add_argument('--dataset-path', type=str, default='/home/wjg/linuxPJ/smoothquant-main/dataset/val.jsonl.zst',
+    parser.add_argument('--dataset-path', type=str, default='./dataset/val.jsonl.zst',
                         help='location of the calibration dataset, we use the validation set of the Pile dataset')
     parser.add_argument('--num-samples', type=int, default=512)
     parser.add_argument('--seq-len', type=int, default=512)
     args = parser.parse_args()
     return args
-
 
 @torch.no_grad()
 def main():
@@ -96,19 +95,8 @@ def main():
 
     act_scales = get_static_decoder_layer_symmetrizations(model, tokenizer, args.dataset_path,
                                 args.num_samples, args.seq_len)
-    # print(act_scales[f"model.decoder.layers.{0}.self_attn.q_proj"]['input'].shape)
     os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
     torch.save(act_scales, args.output_path)
-
-    # import matplotlib.pyplot as plt
-    # tensor_to_visualize = act_scales[f"model.decoder.layers.{0}.self_attn.q_proj"]['input']
-    # tensor_data = tensor_to_visualize.cpu().detach().numpy().flatten()
-    # plt.hist(tensor_data, bins=50, alpha=0.7, color='blue')
-    # plt.title('Histogram of attn_input_scale')
-    # plt.xlabel('Value')
-    # plt.ylabel('Frequency')
-    # plt.show()
-
 
 if __name__ == '__main__':
     main()
