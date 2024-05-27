@@ -14,3 +14,9 @@ pip install transformers accelerate datasets zstandard
 
 python setup.py install
 ```
+
+### Activation Scales and Calibration
+
+We provide the activation channel scales for OPT and BLOOM models in [act_scales/](act_scales/). We get those scales with 512 random sentences in the Pile validation set.
+
+We also provide the script to get the activation channel scales for your models. Please refer to [examples/generate_act_scales.py](examples/generate_act_scales.py). You can use the following command to get the scales for your models:
