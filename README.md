@@ -15,4 +15,4 @@ pip install transformers accelerate datasets zstandard
 
 ### Activation Scales and Calibration
 
-We provide the activation channel scales for OPT, BLOOM and Llama models in [Get_scale_sym/](generate_act_scales.py). And We provide the symmetrization factors for OPT, BLOOM and Llama models in [Symmetrization/](generate_act_scales.py). We get those with 512 random sentences in the Pile validation set.
+We provide the activation channel scales for OPT, BLOOM and Llama models in [Get_scale_sym/](generate_act_scales.py). And We provide the symmetrization factors for OPT, BLOOM and Llama models in [Symmetrization/](generate_act_sym.py). We get those with 512 random sentences in the Pile validation set.
