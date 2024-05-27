@@ -11,12 +11,8 @@ conda create -n smoothquant python=3.8
 conda activate smoothquant
 pip install torch==1.12.1+cu113 torchvision==0.13.1+cu113 torchaudio==0.12.1 --extra-index-url https://download.pytorch.org/whl/cu113
 pip install transformers accelerate datasets zstandard
-
-python setup.py install
 ```
 
 ### Activation Scales and Calibration
 
-We provide the activation channel scales for OPT and BLOOM models in [act_scales/](act_scales/). We get those scales with 512 random sentences in the Pile validation set.
-
-We also provide the script to get the activation channel scales for your models. Please refer to [examples/generate_act_scales.py](examples/generate_act_scales.py). You can use the following command to get the scales for your models:
+We provide the activation channel scales for OPT, BLOOM and Llama models in [Get_scale_sym/](generate_act_scales.py). And We provide the symmetrization factors for OPT, BLOOM and Llama models in [Symmetrization/](generate_act_scales.py). We get those with 512 random sentences in the Pile validation set.
