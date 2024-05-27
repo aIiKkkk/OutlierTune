@@ -39,9 +39,17 @@ class Evaluator:
         model.eval()
 
         for dataset in ["wikitext2", "ptb", "c4"]:
-            cache_testloader = f"/home/wjg/linuxPJ/smoothquant-main/{dataset}_testloader_opt_all.cache"
 
-            testloader = torch.load(cache_testloader)
+            cache_testloader = f"{dataset}_testloader_opt_all.cache"
+
+            if os.path.exists(cache_testloader):
+
+                testloader = torch.load(cache_testloader)
+                print(f"load calibration from {cache_testloader}")
+            else:
+                trainloader, testloader = get_loaders(dataset, model=model_name,
+                                                      cache_dir=f"./Model_data/{model_name}")
+                torch.save(testloader, cache_testloader)
             if "c4" == dataset:
                 testenc = testloader
             else:
@@ -73,20 +81,20 @@ class Evaluator:
 
 model_name = "opt-6.7b"
 
-tokenizer = GPT2Tokenizer.from_pretrained(f"/data/wangjinguang/Model_data/{model_name}")
-dataset = load_from_disk("/data/wangjinguang/dataset/lambada_openai")
-print("Loaded dataset from {/data/wangjinguang/dataset/lambada_openai}")
+tokenizer = GPT2Tokenizer.from_pretrained(f"./Model_data/{model_name}")
+dataset = load_dataset('lambada_openai', split='validation[:1000]')
+
 evaluator_PPL = Evaluator(dataset, tokenizer, 'cuda')
 
-model = OPTForCausalLM.from_pretrained(f"/data/wangjinguang/Model_data/{model_name}",
+model = OPTForCausalLM.from_pretrained(f"./Model_data/{model_name}",
                                         torch_dtype=torch.float16, device_map='auto')
 
 print(model.model.decoder.layers[0].self_attn.k_proj.weight.dtype)
-scales = torch.load(f'/home/wjg/linuxPJ/New/symmetrizations/{model_name}.pt')
+scales = torch.load(f'./symmetrizations/{model_name}.pt')
 
 symmetrization_lm(model, scales)
 
-act_scales = torch.load(f'/home/wjg/linuxPJ/New/act_scales_sym/{model_name}.pt')
+act_scales = torch.load(f'./act_scales_sym/{model_name}.pt')
 smooth_lm(model, act_scales)
 print("Starting quantize_activations")
 model_smoothquant_w8a8 = quantize_model(model, act_scales)

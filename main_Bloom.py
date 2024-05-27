@@ -71,14 +71,14 @@ class Evaluator:
         model.eval()
 
         for dataset in ["wikitext2", "ptb", "c4"]:
-            cache_testloader = f"/home/wjg/linuxPJ/smoothquant-main/{dataset}_testloader_{model_name}_all.cache"
+            cache_testloader = f"{dataset}_testloader_{model_name}_all.cache"
 
             if os.path.exists(cache_testloader):
                 testloader = torch.load(cache_testloader)
                 print(f"load calibration from {cache_testloader}")
             else:
                 dataloader, testloader = get_loaders(dataset, model=model_name,
-                                                     cache_dir=f"/data/wangjinguang/Model_data/{model_name}")
+                                                     cache_dir=f"./Model_data/{model_name}")
                 torch.save(testloader, cache_testloader)
             if "c4" == dataset:
                 testenc = testloader
@@ -109,19 +109,18 @@ class Evaluator:
         return ppl
 
 model_name = "bloom-7b1"
-tokenizer = AutoTokenizer.from_pretrained(f"/data/wangjinguang/Model_data/{model_name}")
-dataset = load_from_disk("/data/wangjinguang/dataset/lambada_openai")
-print("Loaded dataset from {/data/wangjinguang/dataset/lambada_openai}")
+tokenizer = AutoTokenizer.from_pretrained(f"./Model_data/{model_name}")
+dataset = load_dataset('lambada_openai', split='validation[:1000]')
 kwargs = {"torch_dtype": torch.float16, "device_map": "sequential"}
 evaluator_PPL = Evaluator(dataset, tokenizer, 'cuda')
 
 compare_oursw8a8 = True
 if compare_oursw8a8:
-    model = AutoModelForCausalLM.from_pretrained(f"/data/wangjinguang/Model_data/{model_name}", **kwargs)
-    scales = torch.load(f'/home/wjg/linuxPJ/New/symmetrizations/{model_name}.pt')
+    model = AutoModelForCausalLM.from_pretrained(f"./Model_data/{model_name}", **kwargs)
+    scales = torch.load(f'./symmetrizations/{model_name}.pt')
     hyperparameters = False
     symmetrization_lm(model, scales, hyperparameters)
-    act_scales = torch.load(f'/home/wjg/linuxPJ/New/act_scales_sym/{model_name}.pt')
+    act_scales = torch.load(f'./act_scales_sym/{model_name}.pt')
     smooth_lm(model, act_scales)
     print("Starting quantize_activations")
     model_smoothquant_w8a8 = quantize_model(model, act_scales)
